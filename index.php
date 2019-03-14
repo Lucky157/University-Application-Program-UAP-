@@ -5,7 +5,13 @@ $progID=$_SESSION['progID'];}
 if(isset($_SESSION["username"]) && !empty($_SESSION["username"])) {
 
 $username = $_SESSION['username'];
-$usertype = $_SESSION['usertype'];}
+$usertype = $_SESSION['usertype'];
+include_once 'connect.php';
+$sql = "SELECT IDNumber FROM applicant WHERE username='$username'";
+$result = mysqli_query($con, $sql);
+$resultArray = mysqli_fetch_assoc($result);
+$IdNo = $resultArray ['IDNumber'];
+}
 if(isset($_POST['submit'])){
 	include_once 'connect.php';
 	$pidInputAdmin = $_POST['pidInputAdmin'];
@@ -32,16 +38,12 @@ if(isset($_POST['signUp'])){
 	$idType = $_POST['idType'];
 	$idNumber = $_POST['idNumber'];
 	$date = $_POST['dateOfBirth'];
-	
-	if($_POST['usertype'] == 1){
-	$sqlUser = "insert into user (username, password, fullname, email, usertype) VALUES ('$username', '$password', '$fullname','$email','S')";
-	$sqlApplicant = "insert into applicant (username, password, fullname, email, IDType, IDNumber, phoneno, dateOfBirth) VALUES ('$username', '$password', '$fullname','$email','$idType','$idNumber','$phoneNo','$date')";
-	$con -> query($sqlApplicant);
-	}
-	else {$sqlUser = "insert into user (username, password, fullname, email, usertype) VALUES ('$username', '$password', '$fullname','$email','SA')";}
+	$sqlUser = "insert into user (username, password, fullname, email, usertype) 
+	VALUES ('$username', '$password', '$fullname','$email','S')";
+	$sqlApplicant = "insert into applicant (username, password, fullname, email, IDType, IDNumber, phoneno, dateOfBirth) 
+	VALUES ('$username', '$password', '$fullname','$email','$idType','$idNumber','$phoneNo','$date')";
 	$con -> query($sqlUser);
-	
-	
+	$con -> query($sqlApplicant);
 	echo "<script type='text/javascript'>alert('You have Sucessfully Signed Up!');location.href='../signUpLogin.php'</script>";
 				exit();
 }
@@ -112,13 +114,7 @@ if (isset($_POST['login'])){
 	  		<div class="header-top">
 	  			<div class="container">
 			  		<div class="row">
-			  			<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
-			  				<ul>
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance"></i></a></li>
-			  				</ul>			
+			  			<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">			
 			  			</div>
 			  			<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
 <nav id="nav-menu-container">
@@ -167,10 +163,8 @@ if (isset($_POST['login'])){
 							   $navLinkText = "Programmes";}
 							?>
 			          <li><a href="index.php">Home</a></li>
-			          <li><a href="about.html">About</a></li>
+			          <li><a href="about.php">About</a></li>
 			          <li><a href=<?php echo $navLink;?>><?php echo $navLinkText;?></a></li>
-			          <li><a href="gallery.html">Gallery</a></li>					          					          		          
-			          <li><a href="contact.html">Contact</a></li>
 			        </ul>
 			      </nav><!-- #nav-menu-container -->		    		
 		    	</div>
@@ -265,11 +259,10 @@ echo
       <div class="cell  four-fifths  palm-one-whole">
         <div class="grid">
           <div class="cell  nine-twelfths  palm-one-whole">
-            <h2 class="listing-name">
-			
+            <h2 class="listing-name">	
     <a > '.$pname.'</a>
-</h2>';echo
-'<h3 class="epsilon  listing-vendor">' .$uname.'</h3>
+</h2> 
+<h3 class="epsilon  listing-vendor">' .$uname.'</h3>
 <h4 class="epsilon  listing-vendor"> Application ID: ' .$aid.'</h4>
           </div>
           <div class="cell  one-whole">
@@ -279,10 +272,9 @@ echo
       </div>
     </div>
   </div> 
-  
-   '; }
+   '; }echo
    '</div>		
-			</section>';}
+			</section>';};
    $sql = "select name, qualification.QID, overallScore from qualificationObtained, applicant, qualification
 					where qualification.QID = qualificationObtained.QID
 					and applicant.IDNumber = qualificationObtained.IDNumber
@@ -325,7 +317,8 @@ echo
 				and qualification.QID=result.QID
 				and applicant.IDNumber = result.IDNumber
 				and result.QID = '$qid'
-				and username = '$username'";
+				and username = '$username'
+				and qualificationObtained.IDNumber = '$IdNo'";
 				$resultName = mysqli_query($con, $sql2);
 					echo
 						'<div class="whole-wrap">
@@ -403,7 +396,7 @@ echo
 					</div>
 					<form action="" method="post">
 					<p style="font-weight:bold;">Enter ID of the programme you would like to view: </p>
-					<input type="text" class="form-control" placeholder = "Programme ID" name="pidInputAdmin" type="text"></br>
+					<input type="text" class="form-control" required = "" placeholder = "Programme ID" name="pidInputAdmin" type="text"></br>
 					<input type = "submit" name = "submit" class="button  button-full-mobile  float-right" value="Submit"> 
 				</form>
 					</div>
@@ -422,14 +415,15 @@ echo
 					<div class="row d-flex justify-content-center">
 						<div class="menu-content pb-70 col-lg-8">
 							<div class="title text-center">
-								<h1 class="mb-10">You do not have any qualifications yet</h1>
+								<h1 class="mb-10">You do not have any programmes yet</h1>
 							</div>
 						</div>
 					</div>
 					</div>		
 			</section>';};
 			
-};}
+}
+ }
  else {echo 
  
 			'<!-- Start search-course Area -->
@@ -442,8 +436,8 @@ echo
 						<div class="col-lg-4 col-md-4 search-course-right section-gap">
 							<form class="form-wrap" action="#" method="post">
 								<h4 class="text-white pb-20 text-center mb-30">Log in to Your Account</h4>		
-								<input type="text" class="form-control" name="username1" placeholder="Username"  " >
-								<input type="text" class="form-control" name="password1" placeholder="Password"  " >									
+								<input type="text" class="form-control" required=""  name="username1" placeholder="Username"  " >
+								<input type="text" class="form-control" required=""  name="password1" placeholder="Password"  " >									
 								<input name="login" type="submit" value = "login" class="primary-btn text-uppercase text-center"></input>
 							</form>
 						</div>
@@ -454,45 +448,43 @@ echo
 							</h1>
 						</div>
 						<div class="col-lg-5 col-md-4 search-course-right section-gap">
-							<form class="form-wrap" action="#" method="post">
-								<h4 class="text-white pb-20 text-center mb-30">Sign Up As</h4>
-									<ul class="nav nav-tabs nav-justified" id="signupas" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="student-tab" data-toggle="tab" href="#student" role="tab" aria-controls="student" aria-selected="true">Student</a>
-                        </li>
-						<li class="nav-item">
-                            <a class="nav-link" id="sysAdmin-tab" data-toggle="tab" href="#sysAdmin" role="tab" aria-controls="sysAdmin" aria-selected="false">System Admin</a>
-                        </li>
-                    </ul>
-					<h4 class="text-white pb-10 text-center mb-10"></h4>
+								<h4 class="text-white pb-20 text-center mb-30">Join Us</h4>
 					<div class="tab-content" id="signupascontent">
 						<div class="tab-pane fade show active" id="student" role="tabpanel" aria-labelledby="student-tab">
-								<div class="form-group" id="hiddenUserType">
-									<input type="hidden" name="usertype" value="1" checked>
+							<form action="#" method="POST">
+								<div class="form-group">
+									<input type="username" name="username" required="" class="form-control" id="usernameInput" placeholder="Username">
 								</div>
-								<input type="text" class="form-control" name="username" placeholder="Username" " >
-								<input type="text" class="form-control" name="password" placeholder="Password" " >
-								<input type="text" class="form-control" name="fullname" placeholder="Full Name" " >
-								<input type="phone" class="form-control" name="phoneno" placeholder="Phone Number" " >
-								<input type="email" class="form-control" name="email" placeholder="Email Address" " >
-								<input type="text" class="form-control" name="idType" placeholder="ID Type (MyKad or passport)" " >
-								<input type="text" class="form-control" name="idNumber" placeholder="ID Number" " >
-								<input type="date" class="form-control" name="dateOfBirth" placeholder="Closing Date" " >
-								<h6 class="text-white pb-10">Date of Birth</h6>
-									</div>
-						<div class="tab-pane fade show" id="sysAdmin" role="tabpanel" aria-labelledby="sysAdmin-tab">
-								<div class="form-group" id="hiddenUserType">
-									<input type="hidden" name="usertype" value="2" checked>
+								<div class="form-group">
+									<input type="password" name="password" required="" class="form-control" id="passwordInput" placeholder="Password">
 								</div>
-								<input type="text" class="form-control" name="username" placeholder="Username" " >
-								<input type="text" class="form-control" name="password" placeholder="Password" " >
-								<input type="text" class="form-control" name="fullname" placeholder="Full Name" " >
-								<input type="email" class="form-control" name="email" placeholder="Email Address" " >
+								<div class="form-group">
+									<input type="fullname" name="fullname" required="" class="form-control" id="fullnameInput" placeholder="Full Name">
 								</div>
+								<div class="form-group">
+									<input type="mobile" name="phoneno" required="" class="form-control" id="mobileInput" placeholder="Mobile No.">
 								</div>
-								<input name="signUp" type="submit" value = "signup" class="primary-btn text-uppercase text-center"></input>
+								<div class="form-group">
+									<input type="email" name="email" required="" class="form-control" id="addressInput" placeholder="Email Address">
+								</div>
+								<div class="form-group">
+									<input type="text" name="idType" required="" class="form-control" id="idtInput" placeholder="ID Type (MyKad or passport)">
+								</div>
+								<div class="form-group">
+									<input type="text" name="idNumber" required="" class="form-control" id="idnInput" placeholder="ID Number">
+								</div>
+								<div class="form-group">
+									<input type="date" name="dateOfBirth" required="" class="form-control" id="cdInput" placeholder="Closing Date">
+								</div>
+								<div class="text-center mt-2">
+								<input id="signupbtn" type="submit" name="signUp" class="primary-btn text-uppercase text-center" value="Sign Up" /></input>
+								
+								</div>
 							</form>
+					</div>
 				</div>	
+				</div>
+				</div>
 			</section>';};?>
 			<!-- End search-course Area -->
 			
@@ -514,88 +506,15 @@ echo
 			
 
 			<!-- Start cta-two Area -->
-			<section class="popular-courses-area section-gap courses-page">
-			</section>
 			<!-- End cta-two Area -->
 						
 			<!-- start footer Area -->		
 			<footer class="footer-area section-gap">
 				<div class="container">
-					<div class="row">
-						<div class="col-lg-2 col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Top Products</h4>
-								<ul>
-									<li><a href="#">Managed Website</a></li>
-									<li><a href="#">Manage Reputation</a></li>
-									<li><a href="#">Power Tools</a></li>
-									<li><a href="#">Marketing Service</a></li>
-								</ul>								
-							</div>
-						</div>
-						<div class="col-lg-2 col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Quick links</h4>
-								<ul>
-									<li><a href="#">Jobs</a></li>
-									<li><a href="#">Brand Assets</a></li>
-									<li><a href="#">Investor Relations</a></li>
-									<li><a href="#">Terms of Service</a></li>
-								</ul>								
-							</div>
-						</div>
-						<div class="col-lg-2 col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Features</h4>
-								<ul>
-									<li><a href="#">Jobs</a></li>
-									<li><a href="#">Brand Assets</a></li>
-									<li><a href="#">Investor Relations</a></li>
-									<li><a href="#">Terms of Service</a></li>
-								</ul>								
-							</div>
-						</div>
-						<div class="col-lg-2 col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Resources</h4>
-								<ul>
-									<li><a href="#">Guides</a></li>
-									<li><a href="#">Research</a></li>
-									<li><a href="#">Experts</a></li>
-									<li><a href="#">Agencies</a></li>
-								</ul>								
-							</div>
-						</div>																		
-						<div class="col-lg-4  col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Newsletter</h4>
-								<p>Stay update with our latest</p>
-								<div class="" id="mc_embed_signup">
-									 <form target="_blank" action="https://spondonit.us12.list-manage.com/subscribe/post?u=1462626880ade1ac87bd9c93a&amp;id=92a4423d01" method="get">
-									  <div class="input-group">
-									    <input type="text" class="form-control" name="EMAIL" placeholder="Enter Email Address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Email Address '" required="" type="email">
-									    <div class="input-group-btn">
-									      <button class="btn btn-default" type="submit">
-									        <span class="lnr lnr-arrow-right"></span>
-									      </button>    
-									    </div>
-									    	<div class="info"></div>  
-									  </div>
-									</form> 
-								</div>
-							</div>
-						</div>											
-					</div>
 					<div class="footer-bottom row align-items-center justify-content-between">
 						<p class="footer-text m-0 col-lg-6 col-md-12"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
 Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
 <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
-						<div class="col-lg-6 col-sm-12 footer-social">
-							<a href="#"><i class="fa fa-facebook"></i></a>
-							<a href="#"><i class="fa fa-twitter"></i></a>
-							<a href="#"><i class="fa fa-dribbble"></i></a>
-							<a href="#"><i class="fa fa-behance"></i></a>
-						</div>
 					</div>						
 				</div>
 			</footer>	
