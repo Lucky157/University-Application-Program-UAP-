@@ -75,6 +75,37 @@ if (isset($_POST['login'])){
 			}
 		}
 	}
+	if(isset($_POST['addQual'])){
+	include_once 'connect.php';
+	$nameAdd = $_POST['name'];
+	$minScoreAdd = $_POST['minScore'];
+	$maxScoreAdd = $_POST['maxScore'];
+	$gradeList = $_POST['gradeList'];
+	$resultCalcDescription = $_POST['resultCalcDescription'];
+	$noOfSubjects = $_POST['noOfSubjects'];
+	
+	$sqlInsert = "insert into qualification (QID, name, minScore, maxScore, resultCalcDescription, noOfSubjects, gradeList) 
+	VALUES ('', '$nameAdd', '$minScoreAdd','$maxScoreAdd','$resultCalcDescription','$noOfSubjects','$gradeList')";
+	$con -> query($sqlInsert);
+	echo "<script type='text/javascript'>alert('Added sucessfully');location.href='../index.php?login=error'</script>";
+					exit();
+}
+if(isset($_POST['submitQual'])){
+	include_once 'connect.php';
+	$qidInput = $_POST['qidInput'];
+
+	$sql = "SELECT QID FROM qualification WHERE QID='$qidInput'";
+	$result = mysqli_query($con, $sql);
+	
+	if (mysqli_num_rows($result) > 0){
+		$resultArray = mysqli_fetch_assoc($result);
+		
+		$_SESSION['qualID']=$resultArray['QID'];
+		header('location:editQual.php');
+	}else{
+		$recordmessage = '<span style="color:#ff0000;">Invalid Application ID!</br></span>';
+	}
+}
 //$_SESSION['progID']=2;
 ?>
 	<html lang="zxx" class="no-js">
@@ -145,7 +176,6 @@ if (isset($_POST['login'])){
 		    <div class="container main-menu">
 		    	<div class="row align-items-center justify-content-between d-flex">
 			      <div id="logo">
-			        <a href="index.html"><img src="img/logo.png" alt="" title="" /></a>
 			      </div>
 			      <nav id="nav-menu-container">
 			        <ul class="nav-menu">
@@ -154,16 +184,27 @@ if (isset($_POST['login'])){
 							If ( $usertype == 'UA') {
 							   $navLink = "programsListAdmin.php";
 							   $navLinkText = "Programmes";
-							}else  {
+							   $navLink1 = "about.php";
+							   $navLinkText1 = "About";
+							}else if ($usertype = 'SA') {
 							   $navLink = "courses.php";
 							   $navLinkText = "Programmes";
-							}}
+							   $navLink1 = "addUniversity.php";
+							   $navLinkText1 = "Universities";
+							}
 							else{
 							   $navLink = "courses.php";
-							   $navLinkText = "Programmes";}
+							   $navLinkText = "Programmes";
+							   $navLink1 = "about.php";
+							   $navLinkText1 = "About";}}
+						else{
+							   $navLink = "courses.php";
+							   $navLinkText = "Programmes";
+							   $navLink1 = "about.php";
+							   $navLinkText1 = "About";}
 							?>
 			          <li><a href="index.php">Home</a></li>
-			          <li><a href="about.php">About</a></li>
+			          <li><a href=<?php echo $navLink1;?>><?php echo $navLinkText1;?></a></li>
 			          <li><a href=<?php echo $navLink;?>><?php echo $navLinkText;?></a></li>
 			        </ul>
 			      </nav><!-- #nav-menu-container -->		    		
@@ -373,7 +414,11 @@ echo
 									<div class="percentage" style="font-weight:bold;">No of Applications</div>
 								</div>';
 								include_once 'connect.php';
-								$sql = "SELECT programme.programmeID, programmeName, closingDate, count(AID) FROM programme, application WHERE programme.programmeID=application.programmeID group by programme.programmeID";
+								$sql = "SELECT programme.programmeID, status, programmeName, closingDate, count(AID) 
+								FROM programme, application 
+								WHERE programme.programmeID=application.programmeID 
+								and status = 'pending'
+								group by programme.programmeID";
 								$result = mysqli_query($con, $sql);
 								if (mysqli_num_rows($result) > 0){
 										while ($row = mysqli_fetch_assoc($result)){
@@ -423,6 +468,83 @@ echo
 			</section>';};
 			
 }
+else {echo 
+'<div class="whole-wrap">
+				<div class="container">
+				<div class="section-top-border">
+						<h3 class="mb-30">Qualifications</h3>
+						<div class="progress-table-wrap mb-30">
+							<div class="progress-table">
+								<div class="table-head">
+									<div class="serial" style="font-weight:bold;">ID</div>
+									<div class="country" style="font-weight:bold;">Qualification</div>
+									<div class="country" style="font-weight:bold;">Maximum Score</div>
+								</div>';
+								include_once 'connect.php';
+								$sql = "SELECT name, QID, maxScore
+								FROM qualification";
+								$result = mysqli_query($con, $sql);
+								if (mysqli_num_rows($result) > 0){
+										while ($row = mysqli_fetch_assoc($result)){
+										$name = $row['name'];
+										$QID = $row['QID'];
+										$maxScore = $row['maxScore'];
+								echo '
+								<div class="table-row" style="font-weight:bold;">
+									<div class="serial">'.$QID.'</div>
+									<div class="country">'.$name.'</div>
+									<div class="country">'.$maxScore.'</div>
+								</div>';} echo'						
+							</div>
+						</div>
+					<form action="" method="post">
+					<p style="font-weight:bold;">Enter ID of the qualification you would like to edit: </p>
+					<input type="text" class="form-control" required=""  placeholder = "Qualification ID" name="qidInput"></br>
+					<input type = "submit" name = "submitQual" class="button  button-full-mobile  float-right" value="Edit">
+				</form>';} echo'
+				</div>
+				</div>
+				</div>
+				</div>
+				<section class="search-course-area relative">
+				<div class="overlay overlay-bg"></div>
+				<div class="container">
+					<div class="row justify-content-between align-items-center">
+					<div class="col-lg-12 col-md-12 search-course-right section-gap">
+							<form class="form-wrap" method = "post">
+								<h1 class="text-white pb-20 text-center mb-30">Add Qualification</h1>
+									<div class="mt-10">
+										<input type="text" name="name" placeholder="Qualification Name"  required class="single-input">
+									</div>
+									<div class="mt-10">
+										<input type="text" name="minScore" placeholder="Minimum Score"  required class="single-input">
+									</div>
+									<div class="mt-10">
+										<input type="text" name="maxScore" placeholder="Maximum Score"  required class="single-input">
+									</div>
+									<div class="mt-10">
+										<input type="text" name="gradeList" placeholder="Grade List"   required class="single-input">
+									</div>
+									<div class="mt-10">
+										<textarea class="single-textarea mb-20" name="resultCalcDescription" placeholder="Mode of calculation (Total or Average)"  required=""></textarea>
+									</div>
+									<div class="mt-10">
+										<input type="text" name="noOfSubjects" placeholder="Number of subjects"   required class="single-input">
+									</div>
+									<div class = "mt-10">
+									<input type="submit" name="addQual" class="genric-btn primary" value="Add"> 
+									<input type="reset" name="reset" class="genric-btn info-border" value="Reset">
+									</div>
+								</div>
+								</form>
+					</div>
+				</div>	
+			</section>
+					
+			<!-- End popular-courses Area -->
+			
+			<section class="popular-courses-area section-gap courses-page">
+			</section>';	};
  }
  else {echo 
  
@@ -437,7 +559,7 @@ echo
 							<form class="form-wrap" action="#" method="post">
 								<h4 class="text-white pb-20 text-center mb-30">Log in to Your Account</h4>		
 								<input type="text" class="form-control" required=""  name="username1" placeholder="Username"  " >
-								<input type="text" class="form-control" required=""  name="password1" placeholder="Password"  " >									
+								<input type="password" class="form-control" required=""  name="password1" placeholder="Password"  " >									
 								<input name="login" type="submit" value = "login" class="primary-btn text-uppercase text-center"></input>
 							</form>
 						</div>
